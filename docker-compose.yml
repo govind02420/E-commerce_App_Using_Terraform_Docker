@@ -1,0 +1,71 @@
+version: '3.8'
+services:
+  mongo:
+    image: mongo:6.0
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: ecommerce
+    ports:
+      - "27017:27017"
+
+  user-service:
+    image: govind02420/user-service:1.0.0   # use Docker Hub image
+    environment:
+      - PORT=3001
+      - MONGODB_URI=mongodb://mongo:27017/ecommerce_users
+    depends_on:
+      - mongo
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+
+  product-service:
+    image: govind02420/product-service:1.0.0
+    environment:
+      - PORT=3002
+      - MONGODB_URI=mongodb://mongo:27017/ecommerce_products
+    depends_on:
+      - mongo
+    ports:
+      - "3002:3002"
+    restart: unless-stopped
+
+  cart-service:
+    image: govind02420/cart-service:1.0.0
+    environment:
+      - PORT=3003
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - MONGODB_URI=mongodb://mongo:27017/ecommerce_cart
+    depends_on:
+      - product-service
+      - mongo
+    ports:
+      - "3003:3003"
+    restart: unless-stopped
+
+  order-service:
+    image: govind02420/order-service:1.0.0
+    environment:
+      - PORT=3004
+      - MONGODB_URI=mongodb://mongo:27017/ecommerce_orders
+    depends_on:
+      - mongo
+    ports:
+      - "3004:3004"
+    restart: unless-stopped
+
+  frontend:
+    image: govind02420/frontend:1.0.0
+    ports:
+      - "3000:80"
+    depends_on:
+      - product-service
+      - user-service
+      - cart-service
+      - order-service
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
