@@ -41,7 +41,7 @@ mongo    frontend     user     product    cart   order
 ### 📁 Project Structure
 
 ```
-E-CommerceStore/              # Codebase
+E-CommerceStore/                   # Codebase
 │
 ├── backend/                       # All backend microservices
 │   ├── user-service/
@@ -77,13 +77,9 @@ E-CommerceStore/              # Codebase
 │   ├── variables.tf
 │   ├── outputs.tf
 │   ├── userdata.tpl
-│   └── terraform.tfvars (gitignore this sensitive info inside)
+│   └── terraform.tfvars (gitignore | sensitive info inside)
 │
-└── Screenshots/                          # Evidence/screenshots
-    ├── docker-build-test.png
-    ├── dockerhub-push.png
-    ├── terraform-apply.png
-    └── app-running.png
+└── Screenshots/...                 # Evidence/screenshots
 
 ```
 #
@@ -185,20 +181,30 @@ After ```terraform apply```, outputs will include:
 
 Include in ```/Screenshots```:
 
-- **docker-build-test.png** → Local build success
+### Local build success
+  - Docker Build
 ![docker_build](Screenshots/docker_build.png)
-- **local-test.png** → Frontend success
+### Frontend success (Local)
+ - Frontend Services
 ![local_testing_forntpage](Screenshots/local_testing_forntpage.png)
-- **dockerhub-push.png** → Images pushed to Docker Hub
+### Images pushed to Docker Hub
+  - Docker Destop Containers
 ![docker_containers](Screenshots/docker_containers.png)
+  - Docker Hub
 ![docker_hub_images](Screenshots/docker_hub_images.png)
-- **terraform-apply.png** → Successful infrastructure provisioning
+### Successful infrastructure provisioning
+  - Terraform Apply
 ![terraform-ec2-docker](Screenshots/terraform-ec2-docker.png)
+  - VPC with public subnet
 ![tf-ecomm-vpc](Screenshots/tf-ecomm-vpc.png)
+  - Security group (ports 22, 80, 3000–3004)
 ![tf-ecomm-sgr](Screenshots/tf-ecomm-sg.png)
+  - EC2 Ubuntu 22.04 instance
 ![EC2](Screenshots/EC2.png)
-- **app-running.png** → Frontend accessible in browser
+### Frontend accessible in browser
+  - Frontend service
 ![tf-ecomm-app](Screenshots/tf-ecomm-app.png)
+  - Backend service
 ![All_Services_Health_Check](Screenshots/All_Services_Health_Check.png)
 #
 ## ✅ Verification
