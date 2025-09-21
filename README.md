@@ -1,233 +1,47 @@
-# E-commerce_App_Using_Terraform_Docker
+# 🛒 E-commerce Application with Terraform & Docker on AWS
 
-A full-stack MERN e-commerce application built with microservices architecture, featuring 4 separate Node.js backend services and a React frontend.
+This project provisions infrastructure and deploys a Node.js-based e-commerce application on AWS EC2 using Terraform and Docker. The application has:
+  - **4 backend services**:```user-service```,```product-service```,```cart-service```,```order-service```
+  - **1 frontend service**
+  - **MongoDB database**
 
-## 🏗️ Architecture Overview
+All services run as Docker containers inside an Ubuntu 22.04 EC2 instance. Terraform provisions the infrastructure (VPC, Subnet, Security Groups, EC2) and uses a userdata.tpl script to install Docker, pull images from DockerHub, and run the containers.
+#
+## 📖 1. Project Introduction
 
-This application demonstrates modern microservices architecture with the following components:
+### 🏗️ Architecture Overview
 
-```
-Frontend (React) → API Gateway → Microservices
-                                    ├── User Service (3001)
-                                    ├── Product Service (3002)
-                                    ├── Cart Service (3003)
-                                    └── Order Service (3004)
-```
+- **User Service** → Authentication & profiles (3001)
+- **Product Service** → Product catalog (3002)
+- **Cart Service** → Shopping cart (3003)
+- **Order Service** → Orders & payments (3004)
+- **Frontend (React)** → Web UI (3000)
+- **MongoDB** → Data persistence (running in a container 27017)
 
-## 🔧 Technology Stack
+The services communicate internally via a custom Docker network (ecommerce-net). The frontend is publicly exposed for user access.
 
-### Backend
-- **Runtime**: Node.js with Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Authentication**: JWT tokens
-- **Architecture**: RESTful APIs with microservices
-
-### Frontend
-- **Framework**: React 18
-- **Routing**: React Router
-- **State Management**: React Query + Context API
-- **HTTP Client**: Axios
-- **Styling**: CSS3 with responsive design
-
-## 📦 Microservices
-
-### 1. User Service (Port 3001)
-- User registration and authentication
-- Profile management
-- JWT token generation and validation
-- User data persistence
-
-**Endpoints:**
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User authentication
-- `GET /api/auth/me` - Get current user
-- `GET /api/users/profile` - Get user profile
-- `PUT /api/users/profile` - Update user profile
-
-### 2. Product Service (Port 3002)
-- Product catalog management
-- Category management
-- Product search and filtering
-- Inventory tracking
-
-**Endpoints:**
-- `GET /api/products` - Get products with filtering/pagination
-- `GET /api/products/:id` - Get single product
-- `POST /api/products` - Create product (admin)
-- `PUT /api/products/:id` - Update product (admin)
-- `DELETE /api/products/:id` - Soft delete product (admin)
-- `GET /api/categories` - Get all categories
-- `POST /api/categories` - Create category (admin)
-
-### 3. Cart Service (Port 3003)
-- Shopping cart management
-- Add/remove/update cart items
-- Cart validation
-- Integration with Product Service
-
-**Endpoints:**
-- `GET /api/cart/:userId` - Get user's cart
-- `POST /api/cart/:userId/items` - Add item to cart
-- `PUT /api/cart/:userId/items/:productId` - Update cart item
-- `DELETE /api/cart/:userId/items/:productId` - Remove cart item
-- `DELETE /api/cart/:userId` - Clear entire cart
-- `POST /api/cart/:userId/validate` - Validate cart items
-
-### 4. Order Service (Port 3004)
-- Order creation and management
-- Payment processing simulation
-- Order status tracking
-- Integration with Cart and Product Services
-
-**Endpoints:**
-- `GET /api/orders/user/:userId` - Get user's orders
-- `GET /api/orders/:id` - Get single order
-- `POST /api/orders` - Create new order
-- `PUT /api/orders/:id/status` - Update order status
-- `DELETE /api/orders/:id` - Cancel order
-- `POST /api/payments/process` - Process payment
-- `POST /api/payments/refund` - Process refund
-
-## 🚀 Getting Started
-
-### Prerequisites
-- Node.js 16+ and npm
-- MongoDB (local or cloud instance)
-
-### Installation
-
-1. **Clone the repository**
 ```bash
-git clone <repository-url>
-cd ecommerce-microservices
+                 Internet
+                    |
+            [Security Group]
+       (SSH 22, HTTP 80, 3000-3004)
+                    |
+                 Public Subnet
+                    |
+                EC2 Instance
+          (Ubuntu 22.04 - Docker host)
+                    |
+             Docker Network: ecommerce-net
+  --------------------------------------------------
+  |         |          |          |         |      |
+mongo    frontend     user     product    cart   order
+(27017) (3000->80)   (3001)    (3002)    (3003)  (3004)
 ```
 
-2. **Install dependencies for each service**
-```bash
-
-# Install User Service dependencies
-cd backend/user-service && npm install
-
-# Install Product Service dependencies
-cd ../product-service && npm install
-
-# Install Cart Service dependencies
-cd ../cart-service && npm install
-
-# Install Order Service dependencies
-cd ../order-service && npm install
-
-# Install Frontend dependencies
-cd ../../frontend && npm install
-```
-
-3. **Set up environment variables**
-
-Create `.env` files in each service directory:
-
-**backend/user-service/.env:**
-```env
-PORT=3001
-MONGODB_URI=mongodb://localhost:27017/ecommerce_users
-JWT_SECRET=your-jwt-secret-key
-```
-
-**backend/product-service/.env:**
-```env
-PORT=3002
-MONGODB_URI=mongodb://localhost:27017/ecommerce_products
-```
-
-**backend/cart-service/.env:**
-```env
-PORT=3003
-MONGODB_URI=mongodb://localhost:27017/ecommerce_carts
-PRODUCT_SERVICE_URL=http://localhost:3002
-```
-
-**backend/order-service/.env:**
-```env
-PORT=3004
-MONGODB_URI=mongodb://localhost:27017/ecommerce_orders
-CART_SERVICE_URL=http://localhost:3003
-PRODUCT_SERVICE_URL=http://localhost:3002
-USER_SERVICE_URL=http://localhost:3001
-```
-
-**frontend/.env:**
-```env
-REACT_APP_USER_SERVICE_URL=http://localhost:3001
-REACT_APP_PRODUCT_SERVICE_URL=http://localhost:3002
-REACT_APP_CART_SERVICE_URL=http://localhost:3003
-REACT_APP_ORDER_SERVICE_URL=http://localhost:3004
-```
-
-### Running the Application
-
-
-** Run services individually**
-
-Terminal 1 - User Service:
-```bash
-cd backend/user-service && npm start
-```
-
-Terminal 2 - Product Service:
-```bash
-cd backend/product-service && npm start
-```
-
-Terminal 3 - Cart Service:
-```bash
-cd backend/cart-service && npm start
-```
-
-Terminal 4 - Order Service:
-```bash
-cd backend/order-service && npm start
-```
-
-Terminal 5 - Frontend:
-```bash
-cd frontend && npm start
-```
-
-The application will be available at:
-- Frontend: http://localhost:3000
-- User Service: http://localhost:3001
-- Product Service: http://localhost:3002
-- Cart Service: http://localhost:3003
-- Order Service: http://localhost:3004
-
-## 🎯 Features
-
-### User Features
-- **Authentication**: Register and login with JWT tokens
-- **Product Browsing**: View products with search, filtering, and pagination
-- **Shopping Cart**: Add, update, and remove items
-- **Checkout Process**: Complete order placement with shipping and payment
-- **Order Management**: View order history and track status
-- **Profile Management**: Update personal information and addresses
-
-### Admin Features (Future Enhancement)
-- Product and category management
-- Order status updates
-- Inventory management
-- User management
-
-### Technical Features
-- **Microservices Architecture**: Loosely coupled services
-- **RESTful APIs**: Standard HTTP methods and status codes
-- **Data Validation**: Input validation and error handling
-- **Cross-Service Communication**: HTTP-based service interactions
-- **Responsive Design**: Mobile-friendly user interface
-- **Error Handling**: Comprehensive error management
-- **Loading States**: User-friendly loading indicators
-
-## 📁 Project Structure
+### 📁 Project Structure
 
 ```
-E-CommerceStore-main/              # Codebase
+E-CommerceStore/              # Codebase
 │
 ├── backend/                       # All backend microservices
 │   ├── user-service/
@@ -261,10 +75,9 @@ E-CommerceStore-main/              # Codebase
 ├── terraform-ec2-docker/          # Infrastructure (Terraform)
 │   ├── main.tf
 │   ├── variables.tf
-│   ├── providers.tf
 │   ├── outputs.tf
 │   ├── userdata.tpl
-│   └── terraform.tfvars (gitignore this if sensitive info inside)
+│   └── terraform.tfvars (gitignore this sensitive info inside)
 │
 └── Screenshots/                          # Evidence/screenshots
     ├── docker-build-test.png
@@ -273,48 +86,12 @@ E-CommerceStore-main/              # Codebase
     └── app-running.png
 
 ```
+#
+## 🐳 2. Build Docker Images
 
-## 🔧 API Testing
-
-You can test the APIs using tools like Postman or curl:
-
+Each service has its own Dockerfile. Example for ```user-service```:
 ```bash
-# Health check for all services
-curl http://localhost:3001/health
-curl http://localhost:3002/health
-curl http://localhost:3003/health
-curl http://localhost:3004/health
-
-# Register a new user
-curl -X POST http://localhost:3001/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"firstName":"John","lastName":"Doe","email":"john@example.com","password":"password123"}'
-
-# Get products
-curl http://localhost:3002/api/products
-
-# Get categories
-curl http://localhost:3002/api/categories
-```
-
-## 🚀 Deployment
-
-### Production Considerations
-
-1. **Environment Variables**: Use proper environment variable management
-2. **Database**: Use MongoDB Atlas or other managed database services
-3. **Process Management**: Use PM2 or similar for process management
-4. **Load Balancing**: Implement load balancing for high availability
-5. **Monitoring**: Add logging and monitoring solutions
-6. **Security**: Implement rate limiting, CORS, and other security measures
-
-### Docker Deployment (Future Enhancement)
-
-Each service can be containerized with Docker:
-
-```dockerfile
-# Example Dockerfile for a service
-FROM node:16-alpine
+FROM node:18-alpine
 WORKDIR /app
 COPY package*.json ./
 RUN npm install --production
@@ -322,37 +99,126 @@ COPY . .
 EXPOSE 3001
 CMD ["npm", "start"]
 ```
+## Build & Tag Images Locally
+```bash
+# User Service
+docker build -t <dockerhub_username>/user-service:1.0.0 ./backend/user-service
 
-## 🤝 Contributing
+# Product Service
+docker build -t <dockerhub_username>/product-service:1.0.0 ./backend/product-service
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+# Cart Service
+docker build -t <dockerhub_username>/cart-service:1.0.0 ./backend/cart-service
 
+# Order Service
+docker build -t <dockerhub_username>/order-service:1.0.0 ./backend/order-service
+
+# Frontend
+docker build -t <dockerhub_username>/frontend:1.0.0 ./frontend
+
+```
+#
+## 🖥️ 3. Test Locally with Docker Compose
+Use ```docker-compose.yml``` to spin up all services locally:
+```bash
+docker-compose up --build
+```
+Access the services:
+- Frontend → http://localhost:3000
+- User Service → http://localhost:3001
+- Product Service → http://localhost:3002
+- Cart Service → http://localhost:3003
+- Order Service → http://localhost:3004
+
+#
+### Push to Docker Hub
+```bash
+docker login
+docker push <dockerhub_username>/user-service:1.0.0
+docker push <dockerhub_username>/product-service:1.0.0
+docker push <dockerhub_username>/cart-service:1.0.0
+docker push <dockerhub_username>/order-service:1.0.0
+docker push <dockerhub_username>/frontend:1.0.0
+```
+#
+## 🌍 4. Terraform on AWS
+### Prerequisites
+- AWS CLI configured (aws configure)
+- Terraform v1.5+
+- Docker Hub account (public images or credentials)
+
+### Terraform Structure
+```bash
+terraform-ec2-docker/
+├── main.tf # VPC, Subnet, Security Groups, EC2
+├── variables.tf # Configurable inputs
+├── outputs.tf # Useful outputs (IP/DNS)
+├── userdata.tpl # Script to install Docker & run containers
+└── terraform.tfvars # Your secrets (ignored in git)
+```
+
+### Initialize & Apply
+```bash
+cd terraform-ec2-docker
+## Initialize Terraform
+terraform init
+## Plan Infrastructure
+terraform plan
+## Apply Infrastructure
+terraform apply
+```
+Terraform provisions:
+- VPC with public subnet
+- Security group (ports 22, 80, 3000–3004)
+- EC2 Ubuntu 22.04 instance
+- User data script (userdata.tpl) that:
+  - Installs Docker
+  - Creates Docker network
+  - Runs MongoDB + all 5 services
+
+### Outputs
+After ```terraform apply```, outputs will include:
+- Public IP of EC2
+- Frontend URL → http://<public_ip>:3000
+
+## 🖼️ 5. Screenshots
+
+Include in ```/Screenshots```:
+
+- **docker-build-test.png** → Local build success
+![docker_build](Screenshots/docker_build.png)
+- **local-test.png** → Frontend success
+![local_testing_forntpage](Screenshots/local_testing_forntpage.png)
+- **dockerhub-push.png** → Images pushed to Docker Hub
+![docker_containers](Screenshots/docker_containers.png)
+![docker_hub_images](Screenshots/docker_hub_images.png)
+- **terraform-apply.png** → Successful infrastructure provisioning
+![terraform-ec2-docker](Screenshots/terraform-ec2-docker.png)
+![tf-ecomm-vpc](Screenshots/tf-ecomm-vpc.png)
+![tf-ecomm-sgr](Screenshots/tf-ecomm-sg.png)
+![EC2](Screenshots/EC2.png)
+- **app-running.png** → Frontend accessible in browser
+![tf-ecomm-app](Screenshots/tf-ecomm-app.png)
+![All_Services_Health_Check](Screenshots/All_Services_Health_Check.png)
+#
+## ✅ Verification
+
+SSH into your EC2 and check running containers:
+```bash
+ssh -i <your-key.pem> ubuntu@<public-ip>
+docker ps
+``` 
+**Output**:
+![All_Running_Docker_Containers](Screenshots/All_Running_Docker_Containers.png)
+#
+## 🔒 Notes
+- Add terraform.tfvars to .gitignore (contains sensitive credentials).
+- Restrict SSH (22) access to your IP for security.
+- Scale horizontally with ECS or EKS for production-ready deployments.
+
+#
 ## 📝 License
 
 This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support and questions:
-- Check the documentation
-- Review API endpoints and expected payloads
-- Ensure all services are running
-- Verify database connections
-- Check environment variables
-
-## 🔮 Future Enhancements
-
-- **API Gateway**: Centralized request routing and authentication
-- **Docker Containerization**: Full containerization with docker-compose
-- **Message Queues**: Async communication between services
-- **Caching**: Redis caching for improved performance
-- **Search Engine**: Elasticsearch for advanced product search
-- **File Upload**: Image upload and management
-- **Email Service**: Order confirmations and notifications
-- **Admin Dashboard**: Administrative interface
-- **Analytics**: Order and user analytics
-- **Payment Integration**: Real payment gateway integration
+#
+🎯 This project is designed for learning and practice in DevOps, Terraform, and Docker on AWS. Perfect for beginners looking to deploy real-world microservices!
